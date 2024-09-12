@@ -34,14 +34,14 @@ defmodule Styler.Style.Blocks do
 
   # case statement with exactly 2 `->` cases
   # rewrite to `if` if it's any of 3 trivial cases
-  def run({{:case, _, [head, [{_, [{:->, _, [[lhs_a], a]}, {:->, _, [[lhs_b], b]}]}]]}, _} = zipper, ctx) do
-    case {lhs_a, lhs_b} do
-      {{_, _, [true]}, {_, _, [false]}} -> if_ast(zipper, head, a, b, ctx)
-      {{_, _, [true]}, {:_, _, _}} -> if_ast(zipper, head, a, b, ctx)
-      {{_, _, [false]}, {_, _, [true]}} -> if_ast(zipper, head, b, a, ctx)
-      _ -> {:cont, zipper, ctx}
-    end
-  end
+  # def run({{:case, _, [head, [{_, [{:->, _, [[lhs_a], a]}, {:->, _, [[lhs_b], b]}]}]]}, _} = zipper, ctx) do
+  #   case {lhs_a, lhs_b} do
+  #     {{_, _, [true]}, {_, _, [false]}} -> if_ast(zipper, head, a, b, ctx)
+  #     {{_, _, [true]}, {:_, _, _}} -> if_ast(zipper, head, a, b, ctx)
+  #     {{_, _, [false]}, {_, _, [true]}} -> if_ast(zipper, head, b, a, ctx)
+  #     _ -> {:cont, zipper, ctx}
+  #   end
+  # end
 
   # Credo.Check.Refactor.CondStatements
   def run({{:cond, _, [[{_, [{:->, _, [[head], a]}, {:->, _, [[{:__block__, _, [truthy]}], b]}]}]]}, _} = zipper, ctx)
@@ -51,29 +51,29 @@ defmodule Styler.Style.Blocks do
   # Credo.Check.Readability.WithSingleClause
   # rewrite `with success <- single_statement do body else ...elses end`
   # to `case single_statement do success -> body; ...elses end`
-  def run({{:with, m, [{:<-, am, [success, single_statement]}, [body, elses]]}, zm}, ctx) do
-    {{:__block__, do_meta, [:do]}, body} = body
-    {{:__block__, _else_meta, [:else]}, elses} = elses
-    clauses = [{{:__block__, am, [:do]}, [{:->, do_meta, [[success], body]} | elses]}]
-    # recurse in case this new case should be rewritten to a `if`, etc
-    run({{:case, m, [single_statement, clauses]}, zm}, ctx)
-  end
+  # def run({{:with, m, [{:<-, am, [success, single_statement]}, [body, elses]]}, zm}, ctx) do
+  #   {{:__block__, do_meta, [:do]}, body} = body
+  #   {{:__block__, _else_meta, [:else]}, elses} = elses
+  #   clauses = [{{:__block__, am, [:do]}, [{:->, do_meta, [[success], body]} | elses]}]
+  #   # recurse in case this new case should be rewritten to a `if`, etc
+  #   run({{:case, m, [single_statement, clauses]}, zm}, ctx)
+  # end
 
   # `with true <- x, do: bar` =>`if x, do: bar`
-  def run({{:with, m, [{:<-, _, [{_, _, [true]}, rhs]}, [do_kwl]]}, _} = zipper, ctx) do
-    children =
-      case rhs do
-        # `true <- foo || {:error, :shouldve_used_an_if_statement}``
-        # turn the rhs of an `||` into an else body
-        {:||, _, [head, else_body]} ->
-          [head, [do_kwl, {{:__block__, [line: m[:line] + 2], [:else]}, Style.shift_line(else_body, 3)}]]
+  # def run({{:with, m, [{:<-, _, [{_, _, [true]}, rhs]}, [do_kwl]]}, _} = zipper, ctx) do
+  #   children =
+  #     case rhs do
+  #       # `true <- foo || {:error, :shouldve_used_an_if_statement}``
+  #       # turn the rhs of an `||` into an else body
+  #       {:||, _, [head, else_body]} ->
+  #         [head, [do_kwl, {{:__block__, [line: m[:line] + 2], [:else]}, Style.shift_line(else_body, 3)}]]
 
-        _ ->
-          [rhs, [do_kwl]]
-      end
+  #       _ ->
+  #         [rhs, [do_kwl]]
+  #     end
 
-    {:cont, Zipper.replace(zipper, {:if, m, children}), ctx}
-  end
+  #   {:cont, Zipper.replace(zipper, {:if, m, children}), ctx}
+  # end
 
   # Credo.Check.Refactor.WithClauses
   def run({{:with, with_meta, children}, _} = zipper, ctx) when is_list(children) do
