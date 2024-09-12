@@ -161,9 +161,10 @@ defmodule Styler.Style.SingleNode do
     {{:., dm, [{:__aliases__, am, [mod]}, fun]}, funm, args}
   end
 
-  # Remove parens from 0 arity funs (Credo.Check.Readability.ParenthesesOnZeroArityDefs)
-  defp style({def, dm, [{fun, funm, []} | rest]}) when def in ~w(def defp)a and is_atom(fun),
-    do: style({def, dm, [{fun, Keyword.delete(funm, :closing), nil} | rest]})
+  # Add parens to 0 arity funs (Credo.Check.Readability.ParenthesesOnZeroArityDefs)
+  defp style({def, dm, [{fun, funm, nil} | rest]}) when def in ~w(def defp)a and is_atom(fun) do
+    {def, dm, [{fun, Keyword.put(funm, :closing, line: funm[:line]), []} | rest]}
+  end
 
   # `Credo.Check.Readability.PreferImplicitTry`
   defp style({def, dm, [head, [{_, {:try, _, [try_children]}}]]}) when def in ~w(def defp)a,

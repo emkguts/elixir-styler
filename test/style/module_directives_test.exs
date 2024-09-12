@@ -16,7 +16,7 @@ defmodule Styler.Style.ModuleDirectivesTest do
     test "handles module with no directives" do
       assert_style("""
       defmodule Test do
-        def foo, do: :ok
+        def foo(), do: :ok
       end
       """)
     end
@@ -186,7 +186,7 @@ defmodule Styler.Style.ModuleDirectivesTest do
           import C
           @behaviour Chaotic
           @doc "d doc"
-          def d do
+          def d() do
             alias X.X
             alias H.H
 
@@ -240,7 +240,7 @@ defmodule Styler.Style.ModuleDirectivesTest do
           def c(x), do: y
 
           @doc "d doc"
-          def d do
+          def d() do
             import Ecto.Query
 
             alias H.H
@@ -436,7 +436,7 @@ defmodule Styler.Style.ModuleDirectivesTest do
           alias B.B
 
           # foo
-          def foo do
+          def foo() do
             # ok
             :ok
           end
@@ -456,7 +456,7 @@ defmodule Styler.Style.ModuleDirectivesTest do
           alias C.C
 
           # foo
-          def foo do
+          def foo() do
             # ok
             :ok
           end
@@ -530,7 +530,7 @@ defmodule Styler.Style.ModuleDirectivesTest do
         @derive {Foo, bar: :baz}
         defstruct [:a]
         # comment for foo
-        def foo, do: :ok
+        def foo(), do: :ok
       end
       """
     )
